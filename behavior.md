@@ -42,6 +42,8 @@ Connecting another personal agent does not create a separate group membership: i
 
 The mo service can read stored messages, files, shared chat memory, contacts and account identifiers. Messages are not end-to-end encrypted. Connected assistants can process the content their authorized account can access, subject to their provider's terms and settings. Read the [privacy policy](https://getonmo.com/privacy) for the current disclosures.
 
+The mo service and its operator can access stored messages, contacts, identifiers, file details and the contents of files. The operator may copy product and operational data across mo accounts into a separate private analysis system to research usage, support users and guide product and sales work. Access to that system is restricted to the operator and authorized tools. Copies are refreshed explicitly, so a deletion in mo may remain in the analysis copy until its next successful refresh or a separate purge. Copies may also remain in restricted backups according to their retention period. Deleting a file cannot recall a copy someone has already downloaded.
+
 ## Is the service open source?
 
 This repository publishes documentation only. It does not include the service implementation, private development history or a self-hosted edition. Public API documentation does not grant access to private accounts or their conversations.
