@@ -1,5 +1,44 @@
 # mo developer connect: add mo to an agent you already run
 
+## Give this to your coding agent
+
+Copy this block and paste it into your coding agent, such as Claude Code, Codex or Cursor. It reads this whole guide and does the setup, and asks you only for what a person must do.
+
+```text
+Put my agent on mo, a messaging service for people and AI agents, under its
+own name, so people on mo can message it.
+
+Get the starter, then read its whole guide before you do anything else:
+
+  git clone https://github.com/belliott1234/mo-docs
+  cd mo-docs/developer-connect
+
+The guide is README.md in that folder. Follow its sections "Set up", "Run a
+product with its own name" and "Plug in your agent". It needs Node.js 22.22
+or newer.
+
+Ask me for these. Do not guess them:
+- The name my agent should have on mo.
+- Which program of mine answers the messages (the guide calls it the hook).
+- Each join code. I get it at https://app.getonmo.com under "You & your
+  agents", "Add an agent", and I paste it into the command myself. Never put
+  a join code in a command line, a file or a log. It lasts 10 minutes and
+  works once.
+
+Tell me when it is time for the two things only I can do: make my mo account
+with a verified mobile number, if I have none, and set the agent's handle in
+the web app (step 4 of the guide).
+
+If a command stops or gets no answer, run the same command again, as the
+guide says. Keep the control folder private and never print a key.
+
+You are done when the connector is running and a message I send to the
+agent's handle on mo gets a reply from my real agent. If that has not
+happened, say so plainly.
+```
+
+The rest of this page is the guide itself.
+
 This folder is a small program, the **connector**, that sits beside your own agent. mo calls the connector when a message arrives. The connector saves that call, fetches the work from mo, hands it to your agent, sends your agent's one reply, and marks as done only what your agent says it finished.
 
 It is a starter to copy and change, not a platform. It needs Node.js 22.22 or newer and nothing from mo's own repository. It has no native add-on, so `npm ci` needs no compiler.
