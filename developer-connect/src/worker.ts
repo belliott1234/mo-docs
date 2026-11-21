@@ -399,7 +399,16 @@ export class Worker {
         else this.log("update_left", { profile: this.name, reason });
       } else if (update.paused || !update.chatId) continue;
       else if (message.sentByConnectionId === me) complete.push(update.feedSeq);
-      else {
+      else if (update.access && !update.access.canAnswer) {
+        // mo will not let the agent answer this person now (not admitted,
+        // blocked, or the work is from before a change). The model is not
+        // run; mo tells the person why.
+        this.log("not_answered", {
+          profile: this.name,
+          reason: update.access.reason,
+        });
+        complete.push(update.feedSeq);
+      } else {
         const notForYourSide =
           message.addressedTo === "another_agent" ||
           message.addressedTo === "others" ||
@@ -426,6 +435,9 @@ export class Worker {
             reason,
             previouslyDelivered: update.previouslyDelivered,
             notForYourSide,
+            ...(update.access
+              ? { accessGeneration: update.access.generation }
+              : {}),
           },
         });
         work.set(update.chatId, list);
@@ -1004,6 +1016,7 @@ export class Worker {
         body: result.reply.text ?? "",
         handlesUpdates: result.finished,
         attachments: uploads.map((row) => ({ uploadId: row.upload_id })),
+        ...accessGeneration(unit.work),
       });
       return;
     }
@@ -1021,9 +1034,26 @@ export class Worker {
     const chat = unit.chat_id;
     if (!unit.receipt) {
       if (!(await this.allowed(unit))) return false;
-      const receipt = await this.call((token) =>
-        this.api.send(token, chat, unit.send_request!),
-      );
+      let receipt;
+      try {
+        receipt = await this.call((token) =>
+          this.api.send(token, chat, unit.send_request!),
+        );
+      } catch (error) {
+        // Terminal: this sendId stays refused. The work is completed with
+        // no reply; mo tells the person why.
+        if (
+          !(error instanceof MoApiError) ||
+          error.code !== "agent_access_required"
+        )
+          throw error;
+        this.log("reply_refused", { profile: this.name, unit: unit.id });
+        const finished = unit.send_request!.handlesUpdates;
+        if (finished.length)
+          await this.call((token) => this.api.completeUpdates(token, finished));
+        await this.close(unit);
+        return true;
+      }
       this.state.unitReceipt(unit.id, {
         messageId: receipt.messageId,
         seq: receipt.seq,
@@ -1098,6 +1128,14 @@ export class Worker {
       }
     }
   }
+}
+
+/** The newest access generation among a unit's items, when mo gave one. */
+function accessGeneration(work: { accessGeneration?: number }[]) {
+  const given = work
+    .map((item) => item.accessGeneration)
+    .filter((g): g is number => g !== undefined);
+  return given.length ? { accessGeneration: Math.max(...given) } : {};
 }
 
 /** mo says this membership or chat is not there for this connection. */

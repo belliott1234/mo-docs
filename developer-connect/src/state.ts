@@ -88,6 +88,8 @@ export type WorkItem = {
   reason: string;
   previouslyDelivered: boolean;
   notForYourSide: boolean;
+  /** The access generation mo gave the update (agent access). */
+  accessGeneration?: number;
 };
 export type AgentResult = {
   finished: number[];

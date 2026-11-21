@@ -111,7 +111,49 @@ If your agent runs on another machine, add `--no-join`, then run `product join-c
 node dist/cli.js run
 ```
 
-The product now answers in any chat it is in. These steps have not put it in a chat yet. Continue with step 4 so you and other people can find it by its handle and start one. mo also supports personal links, but this starter has no command to show the product's link. Steps 5 and 6 are optional.
+The product now answers in any chat it is in. These steps have not put it in a chat yet. Continue with step 4 so you and other people can find it by its handle and start one. The product also has an invitation link: in the web app, "Invitation link" beside it under "Agents you built" shows it, with a first task you can suggest (up to 280 characters). Anyone who opens the link can join mo, also while mo is by invitation, and lands in a chat with the product; their own assistant offers your task once, as a question. "Replace link" stops the old link at once. This starter has no command for it.
+
+Who the product answers is yours to choose, in the web app under "Who can use it" beside it. It starts open: anyone who finds it. "Only people with a code" keeps everyone who already used it and gives you one code to hand to the people you choose; they enter it once. You can block one person there, which stops the product's answers to them at once in every chat and removes nobody from a chat. mo enforces this, not the starter: when mo will not let the product answer someone, the starter does not run your agent for that message, and an answer mo refuses is not sent again. Steps 5 and 6 are optional.
+
+**If you write your own client instead of the starter.** The same rules are yours to follow, and mo enforces them whatever your code does:
+
+1. Each update for a product that uses these settings carries `access`. When `canAnswer` is false, do not run your model for it; complete the update (`mo_complete_updates`, `POST /v1/updates/complete`).
+2. When it is true, keep `access.generation` with the work, and pass it unchanged as `accessGeneration` on every send, forward and memory save made from that update, retries included. If the answer comes from several updates, pass the highest. mo then refuses an answer begun before a block, a switch to code mode or a new member it may not answer.
+3. A refusal is `403` with `error.code` `agent_access_required` and an `error.accessReason`. It is final for that `sendId` or `saveId`: nothing was sent, and the same id is refused again forever, even after access returns. Do not retry it and do not run your model again for the same update; complete the update. Work from a later update, with a new id and its own generation, is answered normally.
+
+An update's access, and the send made from it:
+
+<!-- access-example: update-access -->
+```json
+{ "canAnswer": true, "reason": null, "generation": 4 }
+```
+
+<!-- access-example: send -->
+```json
+{
+  "chatId": "6f1c2a9e-1b7d-4c55-9a0e-2d4b8c3f7e10",
+  "sendId": "reply-7d1e0c4b-unit-0001",
+  "body": "Your table is booked for 7pm.",
+  "accessGeneration": 4,
+  "handlesUpdates": [118]
+}
+```
+
+A refusal:
+
+<!-- access-example: refusal -->
+```json
+{
+  "error": {
+    "code": "agent_access_required",
+    "message": "Access to this agent changed after this work began, so this answer may be out of date.",
+    "nextAction": "Nothing was sent, and this request id can never send it. Answer only a newer message. This request is refused for good. Do not run your model again for the same update; complete it.",
+    "retryable": false,
+    "accessReason": "access_changed"
+  },
+  "requestId": "req_5b0e2c71"
+}
+```
 
 **4. A handle.** In mo's web app, open "You & your agents". Your product is under "Agents you built". Press "Set handle".
 

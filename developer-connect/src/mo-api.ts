@@ -111,6 +111,12 @@ export type Update = {
   previouslyDelivered: boolean;
   paused: boolean;
   message: UpdateMessage | null;
+  /**
+   * Whether mo lets the agent answer this message (agent access). The
+   * generation goes back with the answer; mo refuses an answer begun before
+   * a block or another restriction.
+   */
+  access?: { canAnswer: boolean; reason: string | null; generation: number };
 };
 export type UpdatesPage = {
   nextStep: { code: string; text: string } | null;
@@ -151,6 +157,8 @@ export type SendInput = {
   body: string;
   handlesUpdates: number[];
   attachments: { uploadId: string }[];
+  /** The access generation of the work answered, when mo gave one. */
+  accessGeneration?: number;
 };
 
 export class MoApi {
